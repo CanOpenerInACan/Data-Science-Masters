@@ -1,0 +1,76 @@
+---
+title: 'DSC640 Weeks 1 and 2: Charts'
+author: "David Lattimer"
+date: "3/24/2021"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(readxl)
+library(dplyr)
+library(forcats)
+library(reshape2)
+```
+
+```{r include=FALSE}
+obama <- read_excel('obama-approval-ratings.xls')
+hotdog_winners <- read_excel('hotdog-contest-winners.xlsm')
+hotdog_counts <- read_excel('hotdog-places.xlsm')
+```
+
+```{r echo=FALSE}
+#Bar Chart
+obama %>%
+  mutate(Issue = fct_reorder(Issue, Approve)) %>%
+  ggplot(aes(x=Issue,y=Approve)) + geom_bar(stat='identity') + coord_flip() + labs(title='Obama Approval Ratings on Issues', x='Issue', y='Approval Rating')
+```
+
+
+```{r echo=FALSE}
+#Stacked Bar Chart
+
+melted_obama <- melt(obama, id.var="Issue")
+
+
+ggplot(melted_obama, aes(x = Issue, y = value, fill = variable)) + 
+  geom_bar(stat = "identity") + coord_flip() + scale_fill_manual(values = c("#F2BC94","#30110D", "#722620")) + labs(title="                   Obama Ratings on Issues", x="Issue", y="Percentage")
+```
+
+```{r echo=FALSE}
+taxes <- data.frame(
+  rating = c("Approval", "Disapproval", "None"),
+  numbers = c(41, 54, 5)
+)
+
+pie <- ggplot(taxes, aes(x="", y=numbers, fill=rating)) + geom_bar(width=1, stat="identity") + coord_polar("y", start=0) + scale_fill_manual(values = c("#F2BC94","#30110D", "#722620")) + labs(title="                  Pie Chart of Taxes Approval Ratings", x="", y="") + theme_void()
+
+pie
+```
+
+```{r echo=FALSE}
+education <- data.frame(
+  categories = c("Approval", "Disapproval", "None"),
+  values = (c(49, 40, 11))
+)
+
+
+education$fraction = education$values / sum(education$values)
+
+# Compute the cumulative percentages (top of each rectangle)
+education$ymax = cumsum(education$fraction)
+
+# Compute the bottom of each rectangle
+education$ymin = c(0, head(education$ymax, n=-1))
+
+# Make the plot
+ggplot(education, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=categories)) + geom_rect() + coord_polar(theta="y") +xlim(c(2, 4)) + scale_fill_manual(values = c("#F2BC94","#30110D", "#722620")) + labs(title="             Donut Chart of Education Approval Ratings", x="", y="") + theme_void()
+```
+

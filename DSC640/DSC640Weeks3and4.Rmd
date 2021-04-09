@@ -1,0 +1,30 @@
+---
+title: "DSC 640 Weeks 3 and 4: Line/Step Chart"
+author: "David Lattimer"
+date: "4/7/2021"
+output: html_document
+---
+
+```{r include=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(readxl)
+library(dplyr)
+library(forcats)
+library(reshape2)
+```
+
+```{r echo=FALSE}
+pop <- read_excel('world-population.xlsm')
+head(pop)
+```
+
+```{r}
+
+minors <- seq(0,7000000000, by=1000000000)
+ggplot(pop, aes(x=Year, y=Population))  + geom_hline(mapping=NULL, yintercept=minors ,colour='grey80') + geom_line() + ylim(0,7000000000) + labs(title="World Population (1960-2009)", subtitle="Line Chart", x='Year', y='Population') + theme_classic()
+```
+
+```{r}
+ggplot(pop, aes(x=Year, y=Population)) + geom_hline(mapping=NULL, yintercept=minors ,colour='grey80') + geom_step() + ylim(0,7000000000) + labs(title="World Population (1960-2009)", subtitle="Step Chart", x='Year', y='Population') + theme_classic()
+```
