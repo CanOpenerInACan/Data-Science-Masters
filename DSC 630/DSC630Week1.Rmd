@@ -1,0 +1,166 @@
+---
+title: 'Week 1: R Refresher'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Import, Plot, Save and Summarize Data
+
+
+```{r include=FALSE}
+library(tidyverse)
+```
+
+```{r include=FALSE}
+#Import the file
+unemployment <- read.csv(file='unemployed.csv')
+```
+Full Dataframe:
+```{r echo=FALSE}
+#Let's look at the unemployment data
+head(unemployment)
+```
+Cleaned Dataframe:
+```{r echo=FALSE}
+unemployment <- unemployment %>% mutate(Period = as.numeric(gsub("M", "", Period)))
+unemployment <- unemployment %>% 
+  rename(
+    Month = Period,
+    Unemployment = Value
+    )
+unemployment$Day <- 1
+
+unemployment$Date<-as.Date(with(unemployment,paste(Month,Day,Year,sep="-")),"%m-%d-%Y")
+
+unemployment <- subset(unemployment, select = -c(Series.ID, Year, Month, Day, Label))
+
+unemployment<-unemployment[,c(2,1)]
+
+unemployment <- with(unemployment, unemployment[Date>"1999-12-25", ])
+
+head(unemployment)
+```
+
+Graph of unemployment:  
+
+```{r echo=FALSE}
+unemployment_line <- ggplot(unemployment, aes(x=Date, y=Unemployment))+geom_line()
+
+unemployment_line
+```
+
+Cleaned Gas Price Dataframe:
+```{r echo=FALSE}
+gas<- read.csv(file='gas.csv')
+
+gas <- gas %>% mutate(Period = as.numeric(gsub("M", "", Period)))
+
+gas <- gas %>% 
+  rename(
+    Month = Period,
+    Gas_Price = Value
+    )
+
+gas$Day <- 1
+
+gas$Date<-as.Date(with(gas,paste(Month,Day,Year,sep="-")),"%m-%d-%Y")
+
+gas <- subset(gas, select = -c(Series.ID, Year, Month, Day, Label))
+
+gas<-gas[,c(2,1)]
+
+gas <- with(gas, gas[Date > "1999-12-25",])
+
+head(gas)
+```
+
+Graph of gas prices:  
+
+```{r echo=FALSE}
+gas_line <- ggplot(gas, aes(x=Date, y=Gas_Price))+geom_line()
+
+gas_line
+```
+
+Cleaned Alcohol Prices Dataframe:
+```{r echo=FALSE}
+alcohol<- read.csv(file='alcohol.csv')
+
+alcohol <- alcohol %>% mutate(Period = as.numeric(gsub("M", "", Period)))
+
+alcohol <- alcohol %>% 
+  rename(
+    Month = Period,
+    Alcohol_Price = Value
+    )
+
+alcohol$Day <- 1
+
+alcohol$Date<-as.Date(with(alcohol,paste(Month,Day,Year,sep="-")),"%m-%d-%Y")
+
+alcohol <- subset(alcohol, select = -c(Series.ID, Year, Month, Day, Label))
+
+alcohol<-alcohol[,c(2,1)]
+
+
+alcohol <- with(alcohol, alcohol[Date > "1999-12-25", ])
+
+head(alcohol)
+```
+
+Alcohol Price Graph:  
+
+```{r echo=FALSE}
+alcohol_line <- ggplot(alcohol, aes(x=Date, y=Alcohol_Price))+geom_line()
+
+alcohol_line
+```
+
+Combined Dataframe:
+```{r echo=FALSE}
+step1 <- merge(unemployment, gas, by="Date")
+
+combined <- merge(step1, alcohol, by="Date")
+
+head(combined)
+```
+
+Bivariate Relations:
+```{r echo=FALSE}
+library(GGally)
+
+ggpairs(combined[2:4], lower = list(continuous = wrap("smooth", alpha = 0.3, size=0.1)), 
+                    upper = list(continuous = wrap("cor", size=3))) + 
+theme_bw() + 
+theme(axis.line=element_blank(),
+        axis.text=element_blank(),
+        axis.ticks=element_blank())
+```
+
+Summary of Unemployment:
+```{r}
+summary(combined$Unemployment)
+str(combined$Unemployment)
+class(combined$Unemployment)
+```
+
+Summary of Gas Prices:
+```{r}
+summary(combined$Gas_Price)
+str(combined$Gas_Price)
+class(combined$Gas_Price)
+```
+
+Summary of Alcohol Prices:
+```{r}
+summary(combined$Alcohol_Price)
+str(combined$Alcohol_Price)
+class(combined$Alcohol_Price)
+```
+
+### Discussion:
+Unfortunately when looking into this, I wanted to find if I could look into the health of the economy along with the demand/consumption of an elastic and inelastic good. Sadly, I ended up with unemployment (as a measure of the economy), and the prices of good, not their demand. But there is still some interesting points we can draw from this:  
+For one, alcohol prices seem to not be affected by about anything. It may be the closest I have seen to a y=x type of graph from actual data naturally, so that is really interesting. Alcohol prices just steadily keep climbing at the same rate for the past 21 years.  
+Another interest aspect was how gasoline prices seemed to fluctuate with unemployment. At the big rises in unemployment, which were during the 2009 recession, and in 2020-Present during COVID lockdowns, the prices of gasoline dipped. Gasoline prices also just tend to rise over time when not in big recessions. The correlation between the two is still positive, which means that although during big points in unemployment that stand out as crises, and have a negative relationship during those times (More unemployment = Lower prices), during the rest of the 20 years in our dataframes, the prices tend to just rise in general.   
+In this case, I would have loved to find datasets that actually fit what I wanted to find, but it was still interesting to look into. I also would have figured that gas would have had a more steady increase in prices because that's what it seems like has been the trend, but the alcohol graph is just too perfect. (Also I wish that gas prices were what I am seeing here. It's around $3.50 out here in California)
